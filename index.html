@@ -61,10 +61,20 @@ iframe{
   opacity:.6;
 }
 
+/* 🎁 PREMIOS */
+.premios{
+  max-width:900px;
+  margin:25px auto;
+  background:#111a2e;
+  border-radius:12px;
+  padding:15px;
+  text-align:left;
+}
+
 /* 🏆 GANADORES */
 .ganadores{
   max-width:900px;
-  margin:30px auto;
+  margin:25px auto;
   background:#111a2e;
   border-radius:12px;
   padding:15px;
@@ -80,14 +90,13 @@ iframe{
 
 /* 🔐 ADMIN */
 .admin-btn{
-  position:fixed;
-  bottom:15px;
-  right:15px;
+  margin:40px auto;
   background:#ef4444;
-  padding:12px 16px;
+  padding:12px 20px;
   border-radius:12px;
   cursor:pointer;
   font-weight:bold;
+  width:80px;
 }
 
 .admin-panel{
@@ -106,13 +115,15 @@ iframe{
   width:320px;
 }
 
-input,button{
+input,textarea,button{
   width:90%;
   padding:10px;
   margin:6px;
   border:none;
   border-radius:8px;
 }
+
+textarea{ height:80px; }
 
 button{
   background:#22c55e;
@@ -144,22 +155,33 @@ button{
 <div id="grid" class="grid"></div>
 </section>
 
+<!-- 🎁 PREMIOS -->
+<section class="premios">
+<h2>🎁 Premios</h2>
+<div id="listaPremios">Pronto se publicarán los premios...</div>
+</section>
+
 <!-- 🏆 GANADORES -->
 <section class="ganadores">
 <h2>🏆 Ganadores</h2>
 <div id="listaGanadores"></div>
 </section>
 
-<!-- 🔐 BOTON ADMIN -->
-<div class="admin-btn" onclick="openAdmin()">ADMIN</div>
+<!-- 🔘 BOTON ADMIN -->
+<div class="admin-btn" onclick="openAdmin()">ad</div>
 
 <!-- 🔐 PANEL ADMIN -->
 <div id="adminPanel" class="admin-panel">
   <div class="admin-box">
 
     <h3>🔐 Admin</h3>
-
     <input id="adminPin" placeholder="PIN admin">
+
+    <hr>
+
+    <b>Editar premios</b>
+    <textarea id="premiosTexto" placeholder="Escribe los premios..."></textarea>
+    <button onclick="guardarPremios()">Guardar premios</button>
 
     <hr>
 
@@ -179,7 +201,6 @@ button{
     <button onclick="closeAdmin()" style="background:#ef4444">Cerrar</button>
 
     <p id="adminMsg" class="estado"></p>
-
   </div>
 </div>
 
@@ -215,22 +236,16 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const grid = document.getElementById("grid");
 
-/* 🎟️ CREAR NUMEROS */
+/* 🎟️ NUMEROS */
 for(let i=1;i<=200;i++){
-
-  const id = i.toString().padStart(3,"0");
-
+  const id=i.toString().padStart(3,"0");
   const div=document.createElement("div");
   div.className="numero";
   div.textContent=id;
 
   div.onclick=()=>{
     if(div.classList.contains("vendido")) return;
-
-    const msg=encodeURIComponent(
-      "Hola, quiero comprar el número "+id+" de la rifa"
-    );
-
+    const msg=encodeURIComponent("Hola, quiero comprar el número "+id+" de la rifa");
     window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,"_blank");
   };
 
@@ -243,11 +258,15 @@ for(let i=1;i<=200;i++){
   });
 }
 
-/* 🏆 GANADORES EN VIVO */
-const listaGanadores=document.getElementById("listaGanadores");
+/* 🎁 PREMIOS EN VIVO */
+onSnapshot(doc(db,"config","premios"),(snap)=>{
+  if(snap.exists()){
+    listaPremios.innerHTML=snap.data().texto;
+  }
+});
 
-const q=query(collection(db,"ganadores"), orderBy("fecha","desc"));
-
+/* 🏆 GANADORES */
+const q=query(collection(db,"ganadores"),orderBy("fecha","desc"));
 onSnapshot(q,(snap)=>{
   listaGanadores.innerHTML="";
   snap.forEach(d=>{
@@ -257,38 +276,47 @@ onSnapshot(q,(snap)=>{
         🏆 <b>${g.premio}</b><br>
         👤 ${g.nombre}<br>
         🎟️ Nº ${g.numero}
-      </div>
-    `;
+      </div>`;
   });
 });
 
 /* 🔐 ADMIN UI */
-window.openAdmin=()=>{ adminPanel.style.display="flex"; };
-window.closeAdmin=()=>{ adminPanel.style.display="none"; };
+window.openAdmin=()=> adminPanel.style.display="flex";
+window.closeAdmin=()=> adminPanel.style.display="none";
 
-/* 🔐 VENTA */
-window.marcarVendido=async()=>{
-  const pin=adminPin.value;
-  let numero=numAdmin.value.trim();
-  const comprador=compradorAdmin.value || "Cliente";
-
-  if(pin!==ADMIN_PIN){
+/* 🎁 GUARDAR PREMIOS */
+window.guardarPremios=async()=>{
+  if(adminPin.value!==ADMIN_PIN){
     adminMsg.textContent="❌ PIN incorrecto";
     return;
   }
 
-  numero=numero.padStart(3,"0");
+  await setDoc(doc(db,"config","premios"),{
+    texto:premiosTexto.value
+  });
+
+  adminMsg.textContent="✅ Premios actualizados";
+};
+
+/* 🔐 VENTA */
+window.marcarVendido=async()=>{
+  if(adminPin.value!==ADMIN_PIN){
+    adminMsg.textContent="❌ PIN incorrecto";
+    return;
+  }
+
+  let numero=numAdmin.value.trim().padStart(3,"0");
 
   await setDoc(doc(db,"rifa",numero),{
     vendido:true,
-    comprador,
+    comprador:compradorAdmin.value || "Cliente",
     fecha:serverTimestamp()
   });
 
   adminMsg.textContent="✅ Venta guardada";
 };
 
-/* 🏆 PUBLICAR GANADOR */
+/* 🏆 GANADOR */
 window.publicarGanador=async()=>{
   if(adminPin.value!==ADMIN_PIN){
     adminMsg.textContent="❌ PIN incorrecto";
