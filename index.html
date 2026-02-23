@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Rifa En Vivo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  background:#0b1220;
+  color:white;
+  font-family:Arial, sans-serif;
+  text-align:center;
+}
+
+header{
+  background:#111a2e;
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.container{
+  padding:15px;
+}
+
+iframe{
+  width:95%;
+  max-width:900px;
+  height:500px;
+  border-radius:12px;
+  border:none;
+}
+
+#chatBox{
+  max-width:900px;
+  margin:20px auto;
+  background:#111a2e;
+  border-radius:12px;
+  padding:10px;
+}
+
+#messages{
+  height:200px;
+  overflow-y:auto;
+  background:#0b1220;
+  padding:10px;
+  border-radius:8px;
+  text-align:left;
+}
+
+input,button{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin:5px;
+}
+
+button{
+  background:#22c55e;
+  color:white;
+  font-weight:bold;
+}
+
+.badge{
+  background:#ef4444;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🔴 Rifa en Vivo
+<span class="badge" id="viewers">0 viendo</span>
+</header>
+
+<div class="container">
+
+<!-- 🎥 VIDEO -->
+<iframe src="https://www.youtube.com/embed/VIDEO_ID_AQUI?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen>
+</iframe>
+
+<!-- 💬 CHAT -->
+<div id="chatBox">
+  <h3>💬 Chat en vivo</h3>
+  <div id="messages"></div>
+  <input id="name" placeholder="Tu nombre">
+  <input id="msg" placeholder="Escribe mensaje">
+  <button onclick="sendMsg()">Enviar</button>
+</div>
+
+</div>
+
+<!-- 🔥 FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore, collection, addDoc,
+  onSnapshot, serverTimestamp, doc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 👁 CONTADOR DE ESPECTADORES
+const viewerRef = doc(db,"live","viewers_"+Math.random());
+setDoc(viewerRef,{online:true});
+
+let count=0;
+onSnapshot(collection(db,"live"),snap=>{
+  document.getElementById("viewers").textContent =
+    snap.size + " viendo";
+});
+
+// 💬 CHAT
+const chatRef = collection(db,"chat");
+
+window.sendMsg = async function(){
+  const name=document.getElementById("name").value || "Anónimo";
+  const msg=document.getElementById("msg").value;
+  if(!msg) return;
+
+  await addDoc(chatRef,{
+    name,
+    msg,
+    time:serverTimestamp()
+  });
+
+  document.getElementById("msg").value="";
+};
+
+onSnapshot(chatRef,snap=>{
+  const box=document.getElementById("messages");
+  box.innerHTML="";
+  snap.forEach(doc=>{
+    const d=doc.data();
+    box.innerHTML += `<div><b>${d.name}:</b> ${d.msg}</div>`;
+  });
+  box.scrollTop=box.scrollHeight;
+});
+</script>
+
+
+</body></html>  </video> 
+   </div> 
+   <div class="cartones" id="cartones"></div> <!-- PANEL ADMIN --> 
+   <div class="admin hidden" id="adminPanel"> <button onclick="enviarNumero()">🎱 Sortear número</button> 
+   </div> <button class="logout" onclick="logout()">Cerrar sesión</button> 
+  </div> 
+  <script>
+/* 🔑 CONFIG FIREBASE */
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO"
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* 🔐 LOGIN / REGISTRO */
+function login(){
+  auth.signInWithEmailAndPassword(
+    email.value.trim(),
+    password.value.trim()
+  ).catch(e=>alert(e.message));
+}
+
+function registrar(){
+  auth.createUserWithEmailAndPassword(
+    email.value.trim(),
+    password.value.trim()
+  ).then(cred=>{
+    return db.collection("usuarios").doc(cred.user.uid).set({
+      email: cred.user.email,
+      saldo: 15000,
+      creado: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).catch(e=>alert(e.message));
+}
+
+function logout(){
+  auth.signOut();
+}
+
+/* 🔄 SESIÓN + ADMIN REAL */
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    login.style.display="block";
+    app.classList.add("hidden");
+    return;
+  }
+
+  const token = await user.getIdTokenResult();
+
+  login.style.display="none";
+  app.classList.remove("hidden");
+
+  if(token.claims.admin === true){
+    adminPanel.classList.remove("hidden");
+    console.log("👑 ADMIN REAL");
+  }else{
+    adminPanel.classList.add("hidden");
+  }
+
+  iniciarApp(user.uid);
+});
+
+/* 🚀 APP */
+function iniciarApp(uid){
+  db.collection("usuarios").doc(uid)
+    .onSnapshot(doc=>{
+      const u = doc.data();
+      nombreUsuario.innerText = u.email;
+      saldoUsuario.innerText = "$"+u.saldo;
+      crearCartones();
+    });
+
+  escucharSorteo();
+}
+
+/* 📡 SOCKET */
+function escucharSorteo(){
+  db.collection("sorteo").doc("estado")
+    .onSnapshot(doc=>{
+      if(!doc.exists) return;
+      marcarNumero(doc.data().numero);
+    });
+}
+
+/* 👑 ADMIN */
+async function enviarNumero(){
+  const user = auth.currentUser;
+  const token = await user.getIdTokenResult();
+
+  if(!token.claims.admin){
+    alert("No autorizado");
+    return;
+  }
+
+  const n = Math.floor(Math.random()*20)+1;
+
+  db.collection("sorteo").doc("estado").set({
+    numero: n,
+    tiempo: Date.now()
+  });
+}
+
+/* 🎟️ CARTONES */
+function crearCartones(){
+  cartones.innerHTML="";
+  for(let c=1;c<=2;c++){
+    const div=document.createElement("div");
+    div.className="carton";
+    div.innerHTML=`<h4>Cartón ${c}</h4><div class="numeros"></div>`;
+    const nums=div.querySelector(".numeros");
+
+    for(let i=1;i<=20;i++){
+      const n=document.createElement("div");
+      n.className="num";
+      n.innerText=i;
+      nums.appendChild(n);
+    }
+    cartones.appendChild(div);
+  }
+}
+
+function marcarNumero(num){
+  document.querySelectorAll(".num").forEach(n=>{
+    if(parseInt(n.innerText)===num){
+      n.classList.add("activo");
+    }
+  });
+}
+</script> 
+ 
+</body></html>Text=i;
+            n.onclick=()=>{
+                if(datos[c].includes(i)){
+                    datos[c]=datos[c].filter(x=>x!==i);
+                }else{
+                    if(datos[c].length>=MAX) return;
+                    datos[c].push(i);
+                }
+                actualizar();
+            };
+            numeros.appendChild(n);
+        }
+
+        actualizar();
+        carton.appendChild(numeros);
+        carton.appendChild(contador);
+        cont.appendChild(carton);
+    }
+}
+</script> 
+ 
+</body></html>
