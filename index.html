@@ -25,14 +25,16 @@ header{
   padding:15px;
 }
 
-iframe{
-  width:95%;
-  max-width:900px;
-  height:500px;
+/* 🎥 Short vertical */
+.videoShort{
+  width:320px;
+  height:570px;
+  max-width:95%;
   border-radius:12px;
   border:none;
 }
 
+/* 💬 Chat */
 #chatBox{
   max-width:900px;
   margin:20px auto;
@@ -81,8 +83,12 @@ button{
 
 <div class="container">
 
-<!-- 🎥 VIDEO -->
-<iframe src="https://www.youtube.com/embed/https://youtube.com/shorts/rBhvXxgcrqo?si=83tss903sCuaXGR5?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen>
+<!-- 🎥 SHORT DE YOUTUBE -->
+<iframe
+  class="videoShort"
+  src="https://www.youtube.com/embed/rBhvXxgcrqo?autoplay=1&mute=1"
+  allow="autoplay; encrypted-media"
+  allowfullscreen>
 </iframe>
 
 <!-- 💬 CHAT -->
@@ -98,32 +104,43 @@ button{
 
 <!-- 🔥 FIREBASE -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc,
-  onSnapshot, serverTimestamp, doc, setDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  serverTimestamp,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID",
+  apiKey: "AIzaSyBg1ziZ3KJtPkkngbqWNAkb-Rid63iD4eY",
+  authDomain: "larifita-en-vivo.firebaseapp.com",
+  projectId: "larifita-en-vivo",
+  storageBucket: "larifita-en-vivo.firebasestorage.app",
+  messagingSenderId: "322041084776",
+  appId: "1:322041084776:web:a382be49b50c98a7eab4dd"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+////////////////////////////////////////////////////
 // 👁 CONTADOR DE ESPECTADORES
-const viewerRef = doc(db,"live","viewers_"+Math.random());
-setDoc(viewerRef,{online:true});
+////////////////////////////////////////////////////
+const viewerRef = doc(db,"live","viewer_"+Math.random());
+await setDoc(viewerRef,{online:true});
 
-let count=0;
 onSnapshot(collection(db,"live"),snap=>{
   document.getElementById("viewers").textContent =
     snap.size + " viendo";
 });
 
+////////////////////////////////////////////////////
 // 💬 CHAT
+////////////////////////////////////////////////////
 const chatRef = collection(db,"chat");
 
 window.sendMsg = async function(){
@@ -143,168 +160,13 @@ window.sendMsg = async function(){
 onSnapshot(chatRef,snap=>{
   const box=document.getElementById("messages");
   box.innerHTML="";
-  snap.forEach(doc=>{
-    const d=doc.data();
-    box.innerHTML += `<div><b>${d.name}:</b> ${d.msg}</div>`;
+  snap.forEach(d=>{
+    const data=d.data();
+    box.innerHTML += `<div><b>${data.name}:</b> ${data.msg}</div>`;
   });
   box.scrollTop=box.scrollHeight;
 });
 </script>
 
-
-</body></html>  </video> 
-   </div> 
-   <div class="cartones" id="cartones"></div> <!-- PANEL ADMIN --> 
-   <div class="admin hidden" id="adminPanel"> <button onclick="enviarNumero()">🎱 Sortear número</button> 
-   </div> <button class="logout" onclick="logout()">Cerrar sesión</button> 
-  </div> 
-  <script>
-/* 🔑 CONFIG FIREBASE */
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO"
-};
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db   = firebase.firestore();
-
-/* 🔐 LOGIN / REGISTRO */
-function login(){
-  auth.signInWithEmailAndPassword(
-    email.value.trim(),
-    password.value.trim()
-  ).catch(e=>alert(e.message));
-}
-
-function registrar(){
-  auth.createUserWithEmailAndPassword(
-    email.value.trim(),
-    password.value.trim()
-  ).then(cred=>{
-    return db.collection("usuarios").doc(cred.user.uid).set({
-      email: cred.user.email,
-      saldo: 15000,
-      creado: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }).catch(e=>alert(e.message));
-}
-
-function logout(){
-  auth.signOut();
-}
-
-/* 🔄 SESIÓN + ADMIN REAL */
-auth.onAuthStateChanged(async user=>{
-  if(!user){
-    login.style.display="block";
-    app.classList.add("hidden");
-    return;
-  }
-
-  const token = await user.getIdTokenResult();
-
-  login.style.display="none";
-  app.classList.remove("hidden");
-
-  if(token.claims.admin === true){
-    adminPanel.classList.remove("hidden");
-    console.log("👑 ADMIN REAL");
-  }else{
-    adminPanel.classList.add("hidden");
-  }
-
-  iniciarApp(user.uid);
-});
-
-/* 🚀 APP */
-function iniciarApp(uid){
-  db.collection("usuarios").doc(uid)
-    .onSnapshot(doc=>{
-      const u = doc.data();
-      nombreUsuario.innerText = u.email;
-      saldoUsuario.innerText = "$"+u.saldo;
-      crearCartones();
-    });
-
-  escucharSorteo();
-}
-
-/* 📡 SOCKET */
-function escucharSorteo(){
-  db.collection("sorteo").doc("estado")
-    .onSnapshot(doc=>{
-      if(!doc.exists) return;
-      marcarNumero(doc.data().numero);
-    });
-}
-
-/* 👑 ADMIN */
-async function enviarNumero(){
-  const user = auth.currentUser;
-  const token = await user.getIdTokenResult();
-
-  if(!token.claims.admin){
-    alert("No autorizado");
-    return;
-  }
-
-  const n = Math.floor(Math.random()*20)+1;
-
-  db.collection("sorteo").doc("estado").set({
-    numero: n,
-    tiempo: Date.now()
-  });
-}
-
-/* 🎟️ CARTONES */
-function crearCartones(){
-  cartones.innerHTML="";
-  for(let c=1;c<=2;c++){
-    const div=document.createElement("div");
-    div.className="carton";
-    div.innerHTML=`<h4>Cartón ${c}</h4><div class="numeros"></div>`;
-    const nums=div.querySelector(".numeros");
-
-    for(let i=1;i<=20;i++){
-      const n=document.createElement("div");
-      n.className="num";
-      n.innerText=i;
-      nums.appendChild(n);
-    }
-    cartones.appendChild(div);
-  }
-}
-
-function marcarNumero(num){
-  document.querySelectorAll(".num").forEach(n=>{
-    if(parseInt(n.innerText)===num){
-      n.classList.add("activo");
-    }
-  });
-}
-</script> 
- 
-</body></html>Text=i;
-            n.onclick=()=>{
-                if(datos[c].includes(i)){
-                    datos[c]=datos[c].filter(x=>x!==i);
-                }else{
-                    if(datos[c].length>=MAX) return;
-                    datos[c].push(i);
-                }
-                actualizar();
-            };
-            numeros.appendChild(n);
-        }
-
-        actualizar();
-        carton.appendChild(numeros);
-        carton.appendChild(contador);
-        cont.appendChild(carton);
-    }
-}
-</script> 
- 
-</body></html>
+</body>
+</html>
