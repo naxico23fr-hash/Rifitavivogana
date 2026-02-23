@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Rifa En Vivo</title>
+<title>Rifa en Vivo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -21,151 +21,235 @@ header{
   font-weight:bold;
 }
 
-.container{
+/* 🎥 VIDEO */
+.video-box{
   padding:15px;
 }
 
-/* 🎥 Short vertical */
-.videoShort{
-  width:320px;
-  height:570px;
-  max-width:95%;
-  border-radius:12px;
+iframe{
+  width:95%;
+  max-width:900px;
+  height:500px;
   border:none;
+  border-radius:12px;
 }
 
-/* 💬 Chat */
-#chatBox{
+/* 🎟️ RIFA */
+.rifa{
+  padding:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(55px,1fr));
+  gap:8px;
   max-width:900px;
   margin:20px auto;
-  background:#111a2e;
-  border-radius:12px;
-  padding:10px;
 }
 
-#messages{
-  height:200px;
-  overflow-y:auto;
-  background:#0b1220;
-  padding:10px;
-  border-radius:8px;
-  text-align:left;
+.numero{
+  background:#1f2a44;
+  border:2px solid #2f3f66;
+  padding:12px 0;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:.2s;
+}
+
+.numero:hover{
+  background:#22c55e;
+}
+
+.vendido{
+  background:#ef4444 !important;
+  cursor:not-allowed;
+  opacity:.6;
+}
+
+/* 🔐 ADMIN */
+.admin-btn{
+  position:fixed;
+  bottom:15px;
+  right:15px;
+  background:#ef4444;
+  padding:12px 16px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.admin-panel{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  align-items:center;
+  justify-content:center;
+}
+
+.admin-box{
+  background:#111a2e;
+  padding:25px;
+  border-radius:12px;
+  width:320px;
 }
 
 input,button{
+  width:90%;
   padding:10px;
-  border-radius:8px;
+  margin:6px;
   border:none;
-  margin:5px;
+  border-radius:8px;
 }
 
 button{
   background:#22c55e;
   color:white;
   font-weight:bold;
+  cursor:pointer;
 }
 
-.badge{
-  background:#ef4444;
-  padding:6px 10px;
-  border-radius:8px;
-  font-size:14px;
+.estado{
+  margin-top:10px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-🔴 Rifa en Vivo
-<span class="badge" id="viewers">0 viendo</span>
-</header>
+<header>🔴 Rifa en Vivo</header>
 
-<div class="container">
-
-<!-- 🎥 SHORT DE YOUTUBE -->
+<!-- 🎥 VIDEO -->
+<div class="video-box">
 <iframe
-  class="videoShort"
-  src="https://www.youtube.com/embed/rBhvXxgcrqo?autoplay=1&mute=1"
+  src="https://www.youtube.com/embed/VIDEO_ID_AQUI?autoplay=1"
   allow="autoplay; encrypted-media"
   allowfullscreen>
 </iframe>
-
-<!-- 💬 CHAT -->
-<div id="chatBox">
-  <h3>💬 Chat en vivo</h3>
-  <div id="messages"></div>
-  <input id="name" placeholder="Tu nombre">
-  <input id="msg" placeholder="Escribe mensaje">
-  <button onclick="sendMsg()">Enviar</button>
 </div>
 
+<!-- 🎟️ RIFA -->
+<section class="rifa">
+<h2>Elige tu número</h2>
+<div id="grid" class="grid"></div>
+</section>
+
+<!-- 🔐 BOTON ADMIN -->
+<div class="admin-btn" onclick="openAdmin()">ADMIN</div>
+
+<!-- 🔐 PANEL ADMIN -->
+<div id="adminPanel" class="admin-panel">
+  <div class="admin-box">
+
+    <h3>🔐 Admin</h3>
+
+    <input id="adminPin" placeholder="PIN admin">
+    <input id="numAdmin" placeholder="Número (ej: 001)">
+    <input id="compradorAdmin" placeholder="Nombre comprador">
+
+    <button onclick="marcarVendido()">Marcar vendido</button>
+    <button onclick="closeAdmin()" style="background:#ef4444">Cerrar</button>
+
+    <p id="adminMsg" class="estado"></p>
+
+  </div>
 </div>
 
 <!-- 🔥 FIREBASE -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  serverTimestamp,
   doc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ===== CONFIGURA ===== */
+
+const WHATSAPP = "569XXXXXXXX";
+const ADMIN_PIN = "12345";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBg1ziZ3KJtPkkngbqWNAkb-Rid63iD4eY",
-  authDomain: "larifita-en-vivo.firebaseapp.com",
-  projectId: "larifita-en-vivo",
-  storageBucket: "larifita-en-vivo.firebasestorage.app",
-  messagingSenderId: "322041084776",
-  appId: "1:322041084776:web:a382be49b50c98a7eab4dd"
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID"
 };
+
+/* ===================== */
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const grid = document.getElementById("grid");
 
-////////////////////////////////////////////////////
-// 👁 CONTADOR DE ESPECTADORES
-////////////////////////////////////////////////////
-const viewerRef = doc(db,"live","viewer_"+Math.random());
-await setDoc(viewerRef,{online:true});
+/* 🎟️ CREAR NUMEROS */
+for(let i=1;i<=200;i++){
 
-onSnapshot(collection(db,"live"),snap=>{
-  document.getElementById("viewers").textContent =
-    snap.size + " viendo";
-});
+  const id = i.toString().padStart(3,"0");
 
-////////////////////////////////////////////////////
-// 💬 CHAT
-////////////////////////////////////////////////////
-const chatRef = collection(db,"chat");
+  const div=document.createElement("div");
+  div.className="numero";
+  div.textContent=id;
 
-window.sendMsg = async function(){
-  const name=document.getElementById("name").value || "Anónimo";
-  const msg=document.getElementById("msg").value;
-  if(!msg) return;
+  div.onclick=()=>{
+    if(div.classList.contains("vendido")) return;
 
-  await addDoc(chatRef,{
-    name,
-    msg,
-    time:serverTimestamp()
+    const msg=encodeURIComponent(
+      "Hola, quiero comprar el número "+id+" de la rifa"
+    );
+
+    window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,"_blank");
+  };
+
+  grid.appendChild(div);
+
+  // 🔥 tiempo real
+  onSnapshot(doc(db,"rifa",id),(snap)=>{
+    if(snap.exists() && snap.data().vendido){
+      div.classList.add("vendido");
+    }
   });
+}
 
-  document.getElementById("msg").value="";
+/* 🔐 ADMIN UI */
+window.openAdmin = ()=>{
+  document.getElementById("adminPanel").style.display="flex";
 };
 
-onSnapshot(chatRef,snap=>{
-  const box=document.getElementById("messages");
-  box.innerHTML="";
-  snap.forEach(d=>{
-    const data=d.data();
-    box.innerHTML += `<div><b>${data.name}:</b> ${data.msg}</div>`;
+window.closeAdmin = ()=>{
+  document.getElementById("adminPanel").style.display="none";
+};
+
+/* 🔐 MARCAR VENDIDO */
+window.marcarVendido = async ()=>{
+
+  const pin=document.getElementById("adminPin").value;
+  let numero=document.getElementById("numAdmin").value.trim();
+  const comprador=document.getElementById("compradorAdmin").value || "Cliente";
+
+  if(pin!==ADMIN_PIN){
+    document.getElementById("adminMsg").textContent="❌ PIN incorrecto";
+    return;
+  }
+
+  if(!numero){
+    document.getElementById("adminMsg").textContent="⚠️ Ingresa número";
+    return;
+  }
+
+  numero = numero.padStart(3,"0");
+
+  await setDoc(doc(db,"rifa",numero),{
+    vendido:true,
+    comprador,
+    fecha:serverTimestamp()
   });
-  box.scrollTop=box.scrollHeight;
-});
+
+  document.getElementById("adminMsg").textContent="✅ Marcado vendido";
+};
 </script>
 
 </body>
