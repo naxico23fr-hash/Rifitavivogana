@@ -6,333 +6,495 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 body{
-  margin:0;
-  background:#0b1220;
-  color:white;
-  font-family:Arial, sans-serif;
-  text-align:center;
+margin:0;
+background:#0b1220;
+color:white;
+font-family:system-ui;
+text-align:center;
 }
 
 header{
-  background:#111a2e;
-  padding:15px;
-  font-size:22px;
-  font-weight:bold;
+background:#111a2e;
+padding:16px;
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
 }
 
-/* 🎥 VIDEO */
-.video-box{ padding:15px; }
+.video-box{padding:15px;}
 
 iframe{
-  width:95%;
-  max-width:900px;
-  height:500px;
-  border:none;
-  border-radius:12px;
+width:95%;
+max-width:900px;
+height:500px;
+border:none;
+border-radius:12px;
 }
 
-/* 🎟️ RIFA */
-.rifa{ padding:20px; }
+.app-box{
+max-width:900px;
+margin:auto;
+}
+
+/* compradores */
+
+.compradores{
+background:#111a2e;
+padding:15px;
+border-radius:12px;
+margin:15px;
+text-align:left;
+}
+
+.comp-item{
+background:#0b1220;
+padding:8px;
+margin:5px 0;
+border-radius:8px;
+}
+
+/* grid */
 
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(55px,1fr));
-  gap:8px;
-  max-width:900px;
-  margin:20px auto;
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(60px,1fr));
+gap:8px;
+padding:15px;
 }
 
 .numero{
-  background:#1f2a44;
-  border:2px solid #2f3f66;
-  padding:12px 0;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
-  transition:.2s;
+background:#1f2a44;
+padding:12px 0;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+transition:.2s;
 }
 
-.numero:hover{ background:#22c55e; }
+.numero:hover{
+background:#22c55e;
+}
 
 .vendido{
-  background:#ef4444 !important;
-  cursor:not-allowed;
-  opacity:.6;
+background:#ef4444!important;
+opacity:.7;
+cursor:not-allowed;
+animation:pop .3s;
 }
 
-/* 🎁 PREMIOS */
+@keyframes pop{
+0%{transform:scale(.7)}
+100%{transform:scale(1)}
+}
+
+/* premios */
+
 .premios{
-  max-width:900px;
-  margin:25px auto;
-  background:#111a2e;
-  border-radius:12px;
-  padding:15px;
-  text-align:left;
+background:#111a2e;
+margin:15px;
+padding:15px;
+border-radius:12px;
+text-align:left;
 }
 
-/* 🏆 GANADORES */
+/* ganadores */
+
 .ganadores{
-  max-width:900px;
-  margin:25px auto;
-  background:#111a2e;
-  border-radius:12px;
-  padding:15px;
-  text-align:left;
+background:#111a2e;
+margin:15px;
+padding:15px;
+border-radius:12px;
+text-align:left;
 }
 
-.ganador-item{
-  background:#0b1220;
-  padding:10px;
-  border-radius:8px;
-  margin:6px 0;
+.ganador{
+background:#0b1220;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
 }
 
-/* 🔐 ADMIN */
-.admin-btn{
-  margin:40px auto;
-  background:#ef4444;
-  padding:12px 20px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:bold;
-  width:80px;
-}
+/* admin */
 
 .admin-panel{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.8);
-  align-items:center;
-  justify-content:center;
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.9);
+align-items:center;
+justify-content:center;
 }
 
 .admin-box{
-  background:#111a2e;
-  padding:25px;
-  border-radius:12px;
-  width:320px;
+background:#111a2e;
+padding:25px;
+border-radius:12px;
+width:320px;
 }
 
 input,textarea,button{
-  width:90%;
-  padding:10px;
-  margin:6px;
-  border:none;
-  border-radius:8px;
+width:90%;
+margin:6px;
+padding:10px;
+border:none;
+border-radius:8px;
 }
 
-textarea{ height:80px; }
+textarea{height:80px;}
 
 button{
-  background:#22c55e;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
+background:#22c55e;
+color:white;
+font-weight:bold;
 }
 
-.estado{ margin-top:10px; font-weight:bold; }
+.admin-only{
+display:none;
+font-weight:bold;
+margin:10px;
+}
+
 </style>
 </head>
 
 <body>
 
-<header>🔴 Rifa en Vivo</header>
+<header id="titulo">🔴 Rifa en Vivo</header>
 
-<!-- 🎥 VIDEO -->
+<div class="app-box">
+
 <div class="video-box">
-<iframe
-  src="https://www.youtube.com/embed/VIDEO_ID_AQUI?autoplay=1"
-  allow="autoplay; encrypted-media"
-  allowfullscreen>
-</iframe>
+
+<iframe src="https://www.youtube.com/embed/VIDEO_ID_AQUI?autoplay=1"
+allow="autoplay"
+allowfullscreen></iframe>
+
 </div>
 
-<!-- 🎟️ RIFA -->
-<section class="rifa">
-<h2>Elige tu número</h2>
+<!-- LISTA COMPRADORES -->
+
+<div class="compradores">
+<h3>👥 Compradores</h3>
+<div id="listaCompradores"></div>
+</div>
+
+<div class="admin-only" id="contadorVendidos">
+Vendidos: 0
+</div>
+
+<!-- RIFA -->
+
 <div id="grid" class="grid"></div>
-</section>
 
-<!-- 🎁 PREMIOS -->
-<section class="premios">
-<h2>🎁 Premios</h2>
-<div id="listaPremios">Pronto se publicarán los premios...</div>
-</section>
+<!-- PREMIOS -->
 
-<!-- 🏆 GANADORES -->
-<section class="ganadores">
-<h2>🏆 Ganadores</h2>
-<div id="listaGanadores"></div>
-</section>
-
-<!-- 🔘 BOTON ADMIN -->
-<div class="admin-btn" onclick="openAdmin()">ad</div>
-
-<!-- 🔐 PANEL ADMIN -->
-<div id="adminPanel" class="admin-panel">
-  <div class="admin-box">
-
-    <h3>🔐 Admin</h3>
-    <input id="adminPin" placeholder="PIN admin">
-
-    <hr>
-
-    <b>Editar premios</b>
-    <textarea id="premiosTexto" placeholder="Escribe los premios..."></textarea>
-    <button onclick="guardarPremios()">Guardar premios</button>
-
-    <hr>
-
-    <b>Marcar número vendido</b>
-    <input id="numAdmin" placeholder="Número (ej: 001)">
-    <input id="compradorAdmin" placeholder="Nombre comprador">
-    <button onclick="marcarVendido()">Guardar venta</button>
-
-    <hr>
-
-    <b>Publicar ganador</b>
-    <input id="premioAdmin" placeholder="Premio">
-    <input id="ganadorAdmin" placeholder="Nombre ganador">
-    <input id="numeroGanadorAdmin" placeholder="Número ganador">
-    <button onclick="publicarGanador()">Publicar ganador</button>
-
-    <button onclick="closeAdmin()" style="background:#ef4444">Cerrar</button>
-
-    <p id="adminMsg" class="estado"></p>
-  </div>
+<div class="premios">
+<h3>🎁 Premios</h3>
+<div id="listaPremios"></div>
 </div>
 
-<!-- 🔥 FIREBASE -->
+<!-- GANADORES -->
+
+<div class="ganadores">
+<h3>🏆 Ganadores</h3>
+<div id="listaGanadores"></div>
+</div>
+
+</div>
+
+<!-- PANEL ADMIN -->
+
+<div class="admin-panel" id="adminPanel">
+<div class="admin-box">
+
+<h3>Admin</h3>
+
+<input id="adminPin" placeholder="PIN">
+
+<hr>
+
+<b>Editar premios</b>
+
+<textarea id="premiosTexto"></textarea>
+
+<button onclick="guardarPremios()">Guardar</button>
+
+<hr>
+
+<b>Vender número</b>
+
+<input id="numAdmin" placeholder="Número">
+
+<input id="compradorAdmin" placeholder="Comprador">
+
+<button onclick="marcarVendido()">Guardar</button>
+
+<hr>
+
+<b>Publicar ganador</b>
+
+<input id="premioAdmin" placeholder="Premio">
+
+<input id="ganadorAdmin" placeholder="Nombre">
+
+<input id="numeroGanadorAdmin" placeholder="Número">
+
+<button onclick="publicarGanador()">Publicar</button>
+
+<button onclick="cerrarAdmin()">Cerrar</button>
+
+<p id="adminMsg"></p>
+
+</div>
+</div>
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  onSnapshot,
-  serverTimestamp,
-  collection,
-  addDoc,
-  query,
-  orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* ===== CONFIGURA ===== */
-
-const WHATSAPP = "569XXXXXXXX";
-const ADMIN_PIN = "12345";
-
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID"
-};
-
-/* ===================== */
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const grid = document.getElementById("grid");
-
-/* 🎟️ NUMEROS */
-for(let i=1;i<=200;i++){
-  const id=i.toString().padStart(3,"0");
-  const div=document.createElement("div");
-  div.className="numero";
-  div.textContent=id;
-
-  div.onclick=()=>{
-    if(div.classList.contains("vendido")) return;
-    const msg=encodeURIComponent("Hola, quiero comprar el número "+id+" de la rifa");
-    window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,"_blank");
-  };
-
-  grid.appendChild(div);
-
-  onSnapshot(doc(db,"rifa",id),(snap)=>{
-    if(snap.exists() && snap.data().vendido){
-      div.classList.add("vendido");
-    }
-  });
+getFirestore,
+doc,
+setDoc,
+onSnapshot,
+serverTimestamp,
+collection,
+addDoc,
+query,
+orderBy
 }
 
-/* 🎁 PREMIOS EN VIVO */
-onSnapshot(doc(db,"config","premios"),(snap)=>{
-  if(snap.exists()){
-    listaPremios.innerHTML=snap.data().texto;
-  }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* CONFIG */
+
+const WHATSAPP="569XXXXXXXX";
+
+const ADMIN_PIN="12345";
+
+const firebaseConfig={
+apiKey:"API_KEY",
+authDomain:"PROJECT.firebaseapp.com",
+projectId:"PROJECT_ID"
+};
+
+/* INIT */
+
+const app=initializeApp(firebaseConfig);
+
+const db=getFirestore(app);
+
+/* ELEMENTOS */
+
+const grid=document.getElementById("grid");
+
+const listaCompradores=document.getElementById("listaCompradores");
+
+const contador=document.getElementById("contadorVendidos");
+
+const listaPremios=document.getElementById("listaPremios");
+
+const listaGanadores=document.getElementById("listaGanadores");
+
+/* NUMEROS */
+
+let vendidos=0;
+
+for(let i=1;i<=200;i++){
+
+let id=i.toString().padStart(3,"0");
+
+let div=document.createElement("div");
+
+div.className="numero";
+
+div.textContent=id;
+
+div.onclick=()=>{
+
+if(div.classList.contains("vendido")) return;
+
+let msg=encodeURIComponent("Quiero el número "+id);
+
+window.open(`https://wa.me/${WHATSAPP}?text=${msg}`);
+
+};
+
+grid.appendChild(div);
+
+onSnapshot(doc(db,"rifa",id),(snap)=>{
+
+if(snap.exists()){
+
+let d=snap.data();
+
+div.classList.add("vendido");
+
+vendidos++;
+
+contador.innerText="Vendidos: "+vendidos;
+
+listaCompradores.innerHTML+=`
+
+<div class="comp-item">
+
+🎟 ${id} — ${d.comprador}
+
+</div>
+
+`;
+
+}
+
 });
 
-/* 🏆 GANADORES */
+}
+
+/* PREMIOS */
+
+onSnapshot(doc(db,"config","premios"),snap=>{
+
+if(snap.exists()){
+
+listaPremios.innerHTML=snap.data().texto;
+
+}
+
+});
+
+/* GANADORES */
+
 const q=query(collection(db,"ganadores"),orderBy("fecha","desc"));
+
 onSnapshot(q,(snap)=>{
-  listaGanadores.innerHTML="";
-  snap.forEach(d=>{
-    const g=d.data();
-    listaGanadores.innerHTML+=`
-      <div class="ganador-item">
-        🏆 <b>${g.premio}</b><br>
-        👤 ${g.nombre}<br>
-        🎟️ Nº ${g.numero}
-      </div>`;
-  });
+
+listaGanadores.innerHTML="";
+
+snap.forEach(d=>{
+
+let g=d.data();
+
+listaGanadores.innerHTML+=`
+
+<div class="ganador">
+
+🏆 <b>${g.premio}</b><br>
+
+👤 ${g.nombre}<br>
+
+🎟 ${g.numero}
+
+</div>
+
+`;
+
 });
 
-/* 🔐 ADMIN UI */
-window.openAdmin=()=> adminPanel.style.display="flex";
-window.closeAdmin=()=> adminPanel.style.display="none";
+});
 
-/* 🎁 GUARDAR PREMIOS */
+/* ADMIN SECRETO */
+
+let taps=0;
+
+titulo.onclick=()=>{
+
+taps++;
+
+if(taps>=5){
+
+adminPanel.style.display="flex";
+
+taps=0;
+
+}
+
+};
+
+/* LOGIN ADMIN */
+
 window.guardarPremios=async()=>{
-  if(adminPin.value!==ADMIN_PIN){
-    adminMsg.textContent="❌ PIN incorrecto";
-    return;
-  }
 
-  await setDoc(doc(db,"config","premios"),{
-    texto:premiosTexto.value
-  });
+if(adminPin.value!==ADMIN_PIN){
 
-  adminMsg.textContent="✅ Premios actualizados";
+adminMsg.innerText="PIN incorrecto";
+
+return;
+
+}
+
+document.querySelector(".admin-only").style.display="block";
+
+await setDoc(doc(db,"config","premios"),{
+
+texto:premiosTexto.value
+
+});
+
+adminMsg.innerText="Premios guardados";
+
 };
 
-/* 🔐 VENTA */
 window.marcarVendido=async()=>{
-  if(adminPin.value!==ADMIN_PIN){
-    adminMsg.textContent="❌ PIN incorrecto";
-    return;
-  }
 
-  let numero=numAdmin.value.trim().padStart(3,"0");
+if(adminPin.value!==ADMIN_PIN){
 
-  await setDoc(doc(db,"rifa",numero),{
-    vendido:true,
-    comprador:compradorAdmin.value || "Cliente",
-    fecha:serverTimestamp()
-  });
+adminMsg.innerText="PIN incorrecto";
 
-  adminMsg.textContent="✅ Venta guardada";
+return;
+
+}
+
+let numero=numAdmin.value.padStart(3,"0");
+
+await setDoc(doc(db,"rifa",numero),{
+
+vendido:true,
+
+comprador:compradorAdmin.value,
+
+fecha:serverTimestamp()
+
+});
+
+adminMsg.innerText="Venta guardada";
+
 };
 
-/* 🏆 GANADOR */
 window.publicarGanador=async()=>{
-  if(adminPin.value!==ADMIN_PIN){
-    adminMsg.textContent="❌ PIN incorrecto";
-    return;
-  }
 
-  await addDoc(collection(db,"ganadores"),{
-    premio:premioAdmin.value,
-    nombre:ganadorAdmin.value,
-    numero:numeroGanadorAdmin.value,
-    fecha:serverTimestamp()
-  });
+if(adminPin.value!==ADMIN_PIN){
 
-  adminMsg.textContent="🏆 Ganador publicado";
+adminMsg.innerText="PIN incorrecto";
+
+return;
+
+}
+
+await addDoc(collection(db,"ganadores"),{
+
+premio:premioAdmin.value,
+
+nombre:ganadorAdmin.value,
+
+numero:numeroGanadorAdmin.value,
+
+fecha:serverTimestamp()
+
+});
+
+adminMsg.innerText="Ganador publicado";
+
 };
+
+window.cerrarAdmin=()=>{
+
+adminPanel.style.display="none";
+
+};
+
 </script>
 
 </body>
-</html>
+  </html>
